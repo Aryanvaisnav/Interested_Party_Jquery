@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/themes/redmond/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/free-jqgrid/4.15.5/css/ui.jqgrid.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/free-jqgrid/4.15.5/jquery.jqgrid.min.js"></script>
+</head>
+
+<body>
+    <table id="grid"></table>
+    <div id="fetch"></div>
+
+    <script>
+        $(document).ready(function () {
+
+
+            window.addEventListener('message', function (event) {
+                console.log("Message received from the parent: " + event.data);
+                let tableData = event.data;
+                console.log("table-page");
+                console.log(tableData);
+
+
+                $("#grid").jqGrid('clearGridData');
+                $("#grid").jqGrid('setGridParam', { data: tableData }).trigger('reloadGrid');
+            });
+
+
+            $("#grid").jqGrid({
+                datatype: "local",
+                colModel: [
+                    { name: "ipno", label: "IP NO.", width: 300 },
+                    { name: "set", label: "Set" },
+                    { name: "selectedWorkRole", label: "Work Role", width: 300 },
+                    { name: "ipname", label: "IP Name", editable: true, width: 300 },
+                    { name: "perf_own", label: "Perf. Own", summaryType: "sum", formatter: "number", summaryTpl: "<b>Total perf. own : {0}</b>", editable: true, width: 550 },
+                    { name: "mech_own", label: "Mech. Own", summaryType: "sum", formatter: "number", summaryTpl: "<b>Total mech. own : {0}</b>", editable: true, width: 550 },
+                    { name: "sync_own", label: "Sync. Own", summaryType: "sum", formatter: "number", summaryTpl: "<b>Total sync. own : {0}</b>", editable: true, width: 550 },
+                    { name: "perf_col", label: "Perf. Col", summaryType: "sum", formatter: "number", summaryTpl: "<b>Total perf. col : {0}</b>", editable: true, width: 550 },
+                    { name: "mech_col", label: "Mech. Col", summaryType: "sum", formatter: "number", summaryTpl: "<b>Total mech. col : {0}</b>", editable: true, width: 550 },
+                    { name: "sync_col", label: "Sync. Col", summaryType: "sum", formatter: "number", summaryTpl: "<b>Total sync. col : {0}</b>", editable: true, width: 550 },
+                    { name: "action", label: "Action", formatter: buttonFunction, width: 700 }
+                ],
+                rowList: [10, 20],
+                pager: "#fetch",
+                grouping: true,
+                groupingView: {
+                    groupField: ["set"],
+                    groupCollapse: false,
+                    groupColumnShow: [false],
+                    groupText: ["<b>{0} - {1} item(s)</b>"],
+                    groupSummary: [true]
+                },
+                width: 1250
+            });
+
+            // Set group headers
+            $("#grid").jqGrid('setGroupHeaders', {
+                useColSpanStyle: true,
+                groupHeaders: [
+                    { startColumnName: 'perf_own', numberOfColumns: 3, titleText: 'Own Share' },
+                    { startColumnName: 'perf_col', numberOfColumns: 3, titleText: 'Collection Share' }
+                ]
+            });
+
+
+
+            function buttonFunction(cellvalue, options, rowobject) {
+                let rowId = options.rowId;
+                return `<input class="edit-btn" style='height:22px;' type='button' value='Edit' />` +
+                    `<input class="delete-btn" style='height:22px;' type='button' value='Delete' />` +
+                    `<input class="save-btn" style='height:22px;' type='button' value='Save' />` +
+                    `<input class="clear-btn" style='height:22px;' type='button' value='Clear' />`;
+            }
+
+            let count = 0;
+
+            $("#grid").on("click", ".edit-btn", function () {
+                count = 1;
+                console.log(count, " Initial value");
+                let rowId = $(this).closest("tr").attr("id");
+                console.log(count, " Value after click");
+                editing(rowId);
+
+            });
+
+            $("#grid").on("click", ".delete-btn", function () {
+                let rowId = $(this).closest("tr").attr("id");
+                deleting(rowId);
+            });
+
+            $("#grid").on("click", ".save-btn", function () {
+                console.log(count, " count value in save function");
+                let rowId = $(this).closest("tr").attr("id");
+                if (count == 1) {
+                    saving(rowId);
+                }
+                count = 0;
+                console.log(count, " after pressing save");
+            });
+
+            $("#grid").on("click", ".clear-btn", function () {
+                let rowId = $(this).closest("tr").attr("id");
+                clearing(rowId);
+            });
+
+
+
+
+            function editing(rowId) {
+                console.log("edit function");
+                $("#grid").jqGrid("editRow", rowId);
+                this.disabled = "true";
+                $(".save-btn", ".clear-btn").attr("disabled", false);
+            }
+
+
+
+
+            //=============================================================================================================
+
+            function deleting(rowId) {
+
+                console.log("Delete Function");
+
+                $("#grid").jqGrid("delRowData", rowId);
+
+                $("#grid").trigger('reloadGrid');
+
+                let total_party = 0;
+                let no_of_publisher = 0;
+                let no_of_writer = 0;
+
+                let dataLeft = $("#grid").jqGrid("getRowData");
+                console.log(dataLeft);
+
+                for (let z in dataLeft) {
+                    if (dataLeft[z].selectedWorkRole == 'E' || dataLeft[z].selectedWorkRole == 'SE') {
+                        no_of_publisher++;
+                        console.log(no_of_publisher);
+                    }
+                    else {
+                        no_of_writer++;
+                        console.log(no_of_writer);
+                    }
+                    total_party = no_of_publisher + no_of_writer;
+                    console.log(total_party);
+                }
+
+                let party_count = [];
+                party_count.push(total_party);
+                party_count.push(no_of_publisher);
+                party_count.push(no_of_writer);
+
+                console.log(party_count);
+
+                window.parent.postMessage(party_count, "*");
+
+                let ref = [];
+                
+                let newArr = [];
+                let sum1 = 0; let b1 = 0;
+                let sum2 = 0; let b2 = 0;
+                let sum3 = 0; let b3 = 0;
+                let sum4 = 0; let b4 = 0;
+                let sum5 = 0; let b5 = 0;
+                let sum6 = 0; let b6 = 0;
+                let setValue = 1;
+                let newSetValue = 0;
+                let res = [];
+
+
+                for (let x in dataLeft) {
+                    dataLeft[x].set = 0;
+                    ref.push(dataLeft[x]);
+
+                }
+
+                // Changing the value of set when any total perf becomes 100
+
+                for (let y in ref) {
+
+
+                    b1 = parseInt(ref[y].perf_own);
+                    sum1 = sum1 + b1;
+
+                    b2 = parseInt(ref[y].mech_own);
+                    sum2 = sum2 + b2;
+
+
+                    b3 = parseInt(ref[y].sync_own);
+                    sum3 = sum3 + b3;
+
+
+                    b4 = parseInt(ref[y].perf_col);
+                    sum4 = sum4 + b4;
+
+
+                    b5 = parseInt(ref[y].mech_col);
+                    sum5 = sum5 + b5;
+
+
+                    b6 = parseInt(ref[y].sync_col);
+                    sum6 = sum6 + b6;
+
+
+                    if (sum1 > 100 || sum2 > 100 || sum3 > 100 || sum4 > 100 || sum5 > 100 || sum6 > 100) {
+                        setValue++;
+                        newSetValue = setValue + "";
+                        ref[y].set = newSetValue;
+                        newArr.push(ref[y]);
+
+                        sum1 = b1;
+                        sum2 = b2;
+                        sum3 = b3;
+                        sum4 = b4;
+                        sum5 = b5;
+                        sum6 = b6;
+
+                    }
+                    else if (sum1 == 100 || sum2 == 100 || sum3 == 100 || sum4 == 100 || sum5 == 100 || sum6 == 100) {
+                        newSetValue = setValue + "";
+                        ref[y].set = newSetValue;
+                        newArr.push(ref[y]);
+                        setValue++;
+
+                        sum1 = 0;
+                        sum2 = 0;
+                        sum3 = 0;
+                        sum4 = 0;
+                        sum5 = 0;
+                        sum6 = 0;
+
+                    }
+                    else if (sum1 < 100 && sum2 < 100 && sum3 < 100 && sum4 < 100 && sum5 < 100 && sum6 < 100) {
+                        newSetValue = setValue + "";
+                        ref[y].set = newSetValue;
+                        newArr.push(ref[y]);
+
+                    }
+                    else {
+                        alert("Oops!!!");
+                    }
+
+                }
+
+                $("#grid").jqGrid('clearGridData');
+                $("#grid").jqGrid('setGridParam', { data: newArr }).trigger('reloadGrid');
+
+
+            }
+
+
+
+
+            //==========================================================================================================
+
+
+
+
+            function saving(rowId) {
+                console.log("Saving Function");
+
+                let obj = $("#grid").jqGrid("getRowData", rowId);
+
+                console.log(obj);
+
+                let newArr = [];
+                let sum1 = 0; let b1 = 0;
+                let sum2 = 0; let b2 = 0;
+                let sum3 = 0; let b3 = 0;
+                let sum4 = 0; let b4 = 0;
+                let sum5 = 0; let b5 = 0;
+                let sum6 = 0; let b6 = 0;
+                let setValue = 1;
+                let newSetValue = 0;
+                let res = [];
+
+                if (obj.selectedWorkRole === 'E' || obj.selectedWorkRole === 'SE') {
+                    if (obj.perf_own <= 50 && obj.perf_col <= 50 && obj.mech_own <= 50 && obj.mech_col <= 50 && obj.sync_own <= 50 && obj.sync_col <= 50) {
+
+                        $("#grid").jqGrid("saveRow", rowId);
+                        $("#grid").trigger('reloadGrid');
+
+                        let allData = $("#grid").jqGrid("getRowData");
+                        console.log("All Data ================================");
+                        console.log(allData);
+
+                        for (let x in allData) {
+                            allData[x].set = 0;
+                            res.push(allData[x]);
+
+                        }
+
+                        console.log(res);
+
+
+
+                        // Changing the value of set when any total perf becomes 100
+
+                        for (let y in res) {
+
+
+                            b1 = parseInt(res[y].perf_own);
+                            sum1 = sum1 + b1;
+
+                            b2 = parseInt(res[y].mech_own);
+                            sum2 = sum2 + b2;
+
+
+                            b3 = parseInt(res[y].sync_own);
+                            sum3 = sum3 + b3;
+
+
+                            b4 = parseInt(res[y].perf_col);
+                            sum4 = sum4 + b4;
+
+
+                            b5 = parseInt(res[y].mech_col);
+                            sum5 = sum5 + b5;
+
+
+                            b6 = parseInt(res[y].sync_col);
+                            sum6 = sum6 + b6;
+
+
+                            if (sum1 > 100 || sum2 > 100 || sum3 > 100 || sum4 > 100 || sum5 > 100 || sum6 > 100) {
+                                setValue++;
+                                newSetValue = setValue + "";
+                                res[y].set = newSetValue;
+                                newArr.push(res[y]);
+
+                                sum1 = b1;
+                                sum2 = b2;
+                                sum3 = b3;
+                                sum4 = b4;
+                                sum5 = b5;
+                                sum6 = b6;
+
+                            }
+                            else if (sum1 == 100 || sum2 == 100 || sum3 == 100 || sum4 == 100 || sum5 == 100 || sum6 == 100) {
+                                newSetValue = setValue + "";
+                                res[y].set = newSetValue;
+                                newArr.push(res[y]);
+                                setValue++;
+
+                                sum1 = 0;
+                                sum2 = 0;
+                                sum3 = 0;
+                                sum4 = 0;
+                                sum5 = 0;
+                                sum6 = 0;
+
+                            }
+                            else if (sum1 < 100 && sum2 < 100 && sum3 < 100 && sum4 < 100 && sum5 < 100 && sum6 < 100) {
+                                newSetValue = setValue + "";
+                                res[y].set = newSetValue;
+                                newArr.push(res[y]);
+
+                            }
+                            else {
+                                alert("Oops!!!");
+                            }
+
+                        }
+
+
+                    }
+                    else {
+                        alert("Publisher Share should be smaller and equal to 50");
+                    }
+                }
+                else {
+                    if (obj.perf_own <= 100 && obj.perf_col <= 100 && obj.mech_own <= 100 && obj.mech_col <= 100 && obj.sync_own <= 100 && obj.sync_col <= 100) {
+
+                        $("#grid").jqGrid("saveRow", rowId);
+                        $("#grid").trigger('reloadGrid');
+
+                        let allData = $("#grid").jqGrid("getRowData");
+                        console.log("All Data ================================");
+                        console.log(allData);
+
+                        for (let x in allData) {
+                            allData[x].set = 0;
+                            res.push(allData[x]);
+
+                        }
+
+                        console.log(res);
+
+
+
+                        // Changing the value of set when any total perf becomes 100
+
+                        for (let y in res) {
+
+
+                            b1 = parseInt(res[y].perf_own);
+                            sum1 = sum1 + b1;
+
+                            b2 = parseInt(res[y].mech_own);
+                            sum2 = sum2 + b2;
+
+
+                            b3 = parseInt(res[y].sync_own);
+                            sum3 = sum3 + b3;
+
+
+                            b4 = parseInt(res[y].perf_col);
+                            sum4 = sum4 + b4;
+
+
+                            b5 = parseInt(res[y].mech_col);
+                            sum5 = sum5 + b5;
+
+
+                            b6 = parseInt(res[y].sync_col);
+                            sum6 = sum6 + b6;
+
+
+                            if (sum1 > 100 || sum2 > 100 || sum3 > 100 || sum4 > 100 || sum5 > 100 || sum6 > 100) {
+                                setValue++;
+                                newSetValue = setValue + "";
+                                res[y].set = newSetValue;
+                                newArr.push(res[y]);
+
+                                sum1 = b1;
+                                sum2 = b2;
+                                sum3 = b3;
+                                sum4 = b4;
+                                sum5 = b5;
+                                sum6 = b6;
+
+                            }
+                            else if (sum1 == 100 || sum2 == 100 || sum3 == 100 || sum4 == 100 || sum5 == 100 || sum6 == 100) {
+                                newSetValue = setValue + "";
+                                res[y].set = newSetValue;
+                                newArr.push(res[y]);
+                                setValue++;
+
+                                sum1 = 0;
+                                sum2 = 0;
+                                sum3 = 0;
+                                sum4 = 0;
+                                sum5 = 0;
+                                sum6 = 0;
+
+                            }
+                            else if (sum1 < 100 && sum2 < 100 && sum3 < 100 && sum4 < 100 && sum5 < 100 && sum6 < 100) {
+                                newSetValue = setValue + "";
+                                res[y].set = newSetValue;
+                                newArr.push(res[y]);
+
+                            }
+                            else {
+                                alert("Oops!!!");
+                            }
+
+                        }
+
+                    }
+                    else {
+                        alert("Worker Share should be smaller and equal to 100");
+                    }
+
+                }
+
+                console.log(newArr);
+
+                $("#grid").jqGrid('clearGridData');
+                $("#grid").jqGrid('setGridParam', { data: newArr }).trigger('reloadGrid');
+
+                $(".save-btn", ".clear-btn").attr("disabled", true);
+                $(".edit-btn").attr("disabled", false);
+            }
+
+
+            function clearing(rowId) {
+                console.log("Clearing Function");
+                $("#grid").jqGrid("restoreRow", rowId);
+                $(".save-btn", ".clear-btn").attr("disabled", true);
+                $(".edit-btn").attr("disabled", false);
+
+            }
+
+
+        });
+    </script>
+</body>
+
+</html>

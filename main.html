@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/themes/redmond/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/free-jqgrid/4.15.5/css/ui.jqgrid.min.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/free-jqgrid/4.15.5/jquery.jqgrid.min.js"></script>
+    
+
+</head>
+
+<body>
+    <h1>IP Records</h1>
+    <div>
+        <label for="party">Total Party</label>
+        <input type="number" id="party" readonly>
+        <label for="publisher">Total Publisher</label>
+        <input type="number" id="publisher" readonly>
+        <label for="writter">Total Writter</label>
+        <input type="number" id="writter" readonly>
+    </div>
+    <br><br>
+
+    <div id="tabs">
+        <ul>
+            <li><a href="#tab-1">Interested Party</a></li>
+            <li><a href="#tab-2">IP Details</a></li>
+        </ul>
+        <div id="tab-1">
+            <iframe src="tab1.html" frameborder="2" id="f" width="100%" height="450"></iframe>
+        </div>
+        <div id="tab-2">
+            <iframe src="tab2.html" frameborder="2" id="t" width="100%" height="500"></iframe>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+
+
+            $("#tabs").tabs();
+            $("#f").on("load", function () {
+                $(this).contents().find("#addButton").on("click", function () {
+                    $("#tabs").tabs("option", "active", 1)
+                })
+            })
+
+
+            let capturedData;
+            window.addEventListener("message", function (capture) {
+                capturedData = capture.data;
+                console.log("main-page");
+                if (typeof capturedData[0] == "object") {
+                    console.log(capturedData);  // console
+                    let message = capturedData;
+                    let send = document.querySelector("#t");
+                    console.log(send);
+                    send.contentWindow.postMessage(message, "*");
+
+                }
+
+            })
+
+
+
+            window.addEventListener("message", function (p) {
+                let partyData = p.data;
+                if (typeof partyData[0] == "number") {
+                    $("#writter").val(partyData[2]);
+                    $("#publisher").val(partyData[1]);
+                    $("#party").val(partyData[0]);
+
+                }
+
+            })
+
+        })
+    </script>
+</body>
+
+</html>

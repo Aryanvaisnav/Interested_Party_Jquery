@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/themes/redmond/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/free-jqgrid/4.15.5/css/ui.jqgrid.min.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/free-jqgrid/4.15.5/jquery.jqgrid.min.js"></script>
+</head>
+
+<body>
+    <form id="Register-Form">
+        <fieldset>
+            <legend>IP Registration Form</legend>
+            <br><br>
+            <label for="IPNO">IP NO.</label>
+            <input type="number" id="IPNO" class="clear" required>
+            <br><br>
+            <label for="set">Set</label>
+            <input type="number" id="set" value="1" readonly>
+            <br><br>
+            <label for="choose">Work Role</label>
+            <select name="choose" id="choose">
+                <option value="C">C</option>
+                <option value="CA">CA</option>
+                <option value="A">A</option>
+                <option value="E">E</option>
+                <option value="SE">SE</option>
+            </select>
+            <br><br>
+            <label for="name">IP Name</label>
+            <input type="text" id="name" class="clear" required>
+            <br><br>
+
+            <table>
+                <tr>
+                    <td><label colspan="4">Share</label></td>
+                </tr>
+                <tr>
+                    <td><label for="perf-own">Perf. Own</label></td>
+                    <td><input type="number" id="perf-own" class="clear" required></td>
+                    <td><label for="perf-col">Perf. Col</label></td>
+                    <td><input type="number" id="perf-col" class="clear" required></td>
+                </tr>
+                <tr>
+                    <td><label for="mech-own">Mech. Own</label></td>
+                    <td><input type="number" id="mech-own" class="clear" required></td>
+                    <td><label for="mech-col">Mech. Col</label></td>
+                    <td><input type="number" id="mech-col" class="clear" required></td>
+                </tr>
+                <tr>
+                    <td><label for="sync-own">Sync. Own</label></td>
+                    <td><input type="number" id="sync-own" class="clear" required></td>
+                    <td><label for="sync-col">Sync. Col</label></td>
+                    <td><input type="number" id="sync-col" class="clear" required></td>
+                </tr>
+            </table>
+
+            <br><br>
+            <input type="button" value="Add" id="addButton">
+            <br><br>
+            <input type="reset" value="clear" id="clearButton">
+        </fieldset>
+    </form>
+
+
+    <script>
+        $(document).ready(function () {
+
+            let arr = [];
+            let total_party = 0;
+            let no_of_publisher = 0;
+            let no_of_writer = 0;
+
+            let sum1 = 0; let b1;
+            let sum2 = 0; let b2;
+            let sum3 = 0; let b3;
+            let sum4 = 0; let b4;
+            let sum5 = 0; let b5;
+            let sum6 = 0; let b6;
+            let setValue = 0; let s;
+
+
+
+            $("#addButton").click(function () {
+                let obj = {};
+                obj.ipno = $("#IPNO").val();
+                obj.set = $("#set").val();
+                obj.selectedWorkRole = $("#choose").val();
+                obj.ipname = $("#name").val();
+                obj.perf_own = $("#perf-own").val();
+                obj.mech_own = $("#mech-own").val();
+                obj.sync_own = $("#sync-own").val();
+                obj.perf_col = $("#perf-col").val();
+                obj.mech_col = $("#mech-col").val();
+                obj.sync_col = $("#sync-col").val();
+
+
+
+
+                if (obj.selectedWorkRole === 'E' || obj.selectedWorkRole === 'SE') {
+                    if (obj.perf_own <= 50 && obj.perf_col <= 50 && obj.mech_own <= 50 && obj.mech_col <= 50 && obj.sync_own <= 50 && obj.sync_col <= 50) {
+                        no_of_publisher++;
+
+
+
+                        // Changing the value of set when any total perf becomes 100
+
+
+                        s = parseInt(obj.set);
+                        setValue = s;
+
+                        console.log(setValue);
+
+                        b1 = parseInt(obj.perf_own);
+                        sum1 = sum1 + b1;
+
+                        console.log(sum1);
+
+                        b2 = parseInt(obj.mech_own);
+                        sum2 = sum2 + b2;
+
+                        console.log(sum2);
+
+                        b3 = parseInt(obj.sync_own);
+                        sum3 = sum3 + b3;
+
+                        console.log(sum3);
+
+                        b4 = parseInt(obj.perf_col);
+                        sum4 = sum4 + b4;
+
+                        console.log(sum4);
+
+                        b5 = parseInt(obj.mech_col);
+                        sum5 = sum5 + b5;
+
+                        console.log(sum5);
+
+                        b6 = parseInt(obj.sync_col);
+                        sum6 = sum6 + b6;
+
+                        console.log(sum6);
+
+                        if (sum1 > 100 || sum2 > 100 || sum3 > 100 || sum4 > 100 || sum5 > 100 || sum6 > 100) {
+                            setValue++;
+                            $("#set").val(setValue);
+
+                            console.log("after increment");
+                            console.log(setValue);
+
+                            newSetValue = setValue + "";
+
+                            obj.set = newSetValue;
+
+                            console.log("obj.set : ", obj.set);
+
+                            arr.push(obj);
+
+                            window.parent.postMessage(arr, "*");
+
+                            sum1 = b1;
+                            sum2 = b2;
+                            sum3 = b3;
+                            sum4 = b4;
+                            sum5 = b5;
+                            sum6 = b6;
+
+                        }
+                        else if (sum1 == 100 || sum2 == 100 || sum3 == 100 || sum4 == 100 || sum5 == 100 || sum6 == 100) {
+                            arr.push(obj);
+                            window.parent.postMessage(arr, "*");
+                            setValue++;
+                            $("#set").val(setValue);
+
+                            sum1 = 0;
+                            sum2 = 0;
+                            sum3 = 0;
+                            sum4 = 0;
+                            sum5 = 0;
+                            sum6 = 0;
+
+                        }
+                        else {
+                            arr.push(obj);
+                            window.parent.postMessage(arr, "*");
+                        }
+
+
+                    }
+                    else {
+                        alert("Publisher Share should be smaller and equal to 50");
+                    }
+                }
+                else {
+                    if (obj.perf_own <= 100 && obj.perf_col <= 100 && obj.mech_own <= 100 && obj.mech_col <= 100 && obj.sync_own <= 100 && obj.sync_col <= 100) {
+                        no_of_writer++;
+
+
+                        // Changing the value of set when any total perf becomes 100
+
+
+                        s = parseInt(obj.set);
+                        setValue = s;
+
+                        console.log(setValue);
+
+                        b1 = parseInt(obj.perf_own);
+                        sum1 = sum1 + b1;
+
+                        console.log(sum1);
+
+                        b2 = parseInt(obj.mech_own);
+                        sum2 = sum2 + b2;
+
+                        console.log(sum2);
+
+                        b3 = parseInt(obj.sync_own);
+                        sum3 = sum3 + b3;
+
+                        console.log(sum3);
+
+                        b4 = parseInt(obj.perf_col);
+                        sum4 = sum4 + b4;
+
+                        console.log(sum4);
+
+                        b5 = parseInt(obj.mech_col);
+                        sum5 = sum5 + b5;
+
+                        console.log(sum5);
+
+                        b6 = parseInt(obj.sync_col);
+                        sum6 = sum6 + b6;
+
+                        console.log(sum6);
+
+                        if (sum1 > 100 || sum2 > 100 || sum3 > 100 || sum4 > 100 || sum5 > 100 || sum6 > 100) {
+                            setValue++;
+                            $("#set").val(setValue);
+
+                            console.log("after increment");
+                            console.log(setValue);
+
+                            newSetValue = setValue + "";
+
+                            obj.set = newSetValue;
+
+                            console.log("obj.set : ", obj.set);
+
+                            arr.push(obj);
+
+                            window.parent.postMessage(arr, "*");
+
+                            sum1 = b1;
+                            sum2 = b2;
+                            sum3 = b3;
+                            sum4 = b4;
+                            sum5 = b5;
+                            sum6 = b6;
+
+                        }
+                        else if (sum1 == 100 || sum2 == 100 || sum3 == 100 || sum4 == 100 || sum5 == 100 || sum6 == 100) {
+                            arr.push(obj);
+                            window.parent.postMessage(arr, "*");
+                            setValue++;
+                            $("#set").val(setValue);
+
+                            sum1 = 0;
+                            sum2 = 0;
+                            sum3 = 0;
+                            sum4 = 0;
+                            sum5 = 0;
+                            sum6 = 0;
+
+                        }
+                        else {
+                            arr.push(obj);
+                            window.parent.postMessage(arr, "*");
+                        }
+
+
+                    }
+                    else {
+                        alert("Worker Share should be smaller and equal to 100");
+                    }
+
+                }
+
+                total_party = no_of_publisher + no_of_writer;
+
+                let party_count = [];
+                party_count.push(total_party);
+                party_count.push(no_of_publisher);
+                party_count.push(no_of_writer);
+
+
+
+                window.parent.postMessage(party_count, "*");
+
+                $(".clear").val("");
+
+            });
+
+        });
+    </script>
+</body>
+
+</html>
